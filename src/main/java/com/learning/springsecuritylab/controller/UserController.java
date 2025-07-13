@@ -65,7 +65,8 @@ public class UserController {
 
     @PostMapping(value = Constants.CHANGE_PASSWORD)
     public String changePassword(@RequestBody ChangePasswordDto changePasswordDto) {
-        String userName = changePasswordDto.getUserName();
+        //String userName = changePasswordDto.getUserName();
+        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
         String newPassword = changePasswordDto.getPassword();
         Optional<UserEntity> optionalUserEntity = userRepository.findByUserName(userName);
         if (optionalUserEntity.isEmpty()) {

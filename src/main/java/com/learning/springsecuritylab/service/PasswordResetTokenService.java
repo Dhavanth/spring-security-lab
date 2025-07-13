@@ -46,7 +46,8 @@ public class PasswordResetTokenService {
         PasswordResetToken passwordResetToken = tokenRepository.findByToken(token)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid password reset token"));
 
-        if (passwordResetToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+        if (passwordResetToken.getIsDeleted() ||
+                passwordResetToken.getExpiryDate().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("Password reset token has expired");
         }
 
