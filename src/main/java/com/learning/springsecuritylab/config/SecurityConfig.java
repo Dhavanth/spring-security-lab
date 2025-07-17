@@ -1,6 +1,7 @@
 package com.learning.springsecuritylab.config;
 
 import com.learning.springsecuritylab.constants.Constants;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Bean;
@@ -16,8 +17,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.password.HaveIBeenPwnedRestApiPasswordChecker;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 import javax.sql.DataSource;
+
+import java.util.Collections;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -42,6 +47,19 @@ public class SecurityConfig {
     public SecurityFilterChain customSecurityFilterChain(HttpSecurity http)
             throws Exception {
         http.csrf(csrfConfig -> csrfConfig.disable());
+        http.cors(corsCustomizer -> corsCustomizer.configurationSource(new CorsConfigurationSource() {
+            @Override
+            public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+                CorsConfiguration corsConfiguration = new CorsConfiguration();
+                corsConfiguration.setAllowedOrigins(Collections.singletonList("*")); // Allow all origins
+                corsConfiguration.setAllowedMethods(Collections.singletonList("*"));
+                corsConfiguration.setAllowCredentials(true);
+                corsConfiguration.setAllowedHeaders(Collections.singletonList("*"));
+                corsConfiguration.setMaxAge(3600L);
+
+                return corsConfiguration;
+            }
+        }));
         http.authorizeHttpRequests(
                 requests -> requests
                         .requestMatchers(signUpRequest, customLoginRequest, forgotPasswordRequest, resetPasswordRequest).permitAll()
