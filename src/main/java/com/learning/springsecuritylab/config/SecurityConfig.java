@@ -1,6 +1,7 @@
 package com.learning.springsecuritylab.config;
 
 import com.learning.springsecuritylab.constants.Constants;
+import com.learning.springsecuritylab.filter.CustomCsrfFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.InitializingBean;
@@ -10,6 +11,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.password.CompromisedPasswordChecker;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
@@ -17,6 +19,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.password.HaveIBeenPwnedRestApiPasswordChecker;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
@@ -46,7 +51,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain customSecurityFilterChain(HttpSecurity http)
             throws Exception {
-        http.csrf(csrfConfig -> csrfConfig.disable());
+        // CORS Configuration
         http.cors(corsCustomizer -> corsCustomizer.configurationSource(new CorsConfigurationSource() {
             @Override
             public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
@@ -60,6 +65,15 @@ public class SecurityConfig {
                 return corsConfiguration;
             }
         }));
+
+        // CSRF Configuration
+        CsrfTokenRequestAttributeHandler csrfTokenRequestAttributeHandler = new CsrfTokenRequestAttributeHandler();
+        http.securityContext(contextConfig -> contextConfig.requireExplicitSave(false))
+                .sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.ALWAYS));
+        http.csrf(csrfConfig -> csrfConfig.csrfTokenRequestHandler(csrfTokenRequestAttributeHandler)
+                        .ignoringRequestMatchers(signUpRequest)
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+                .addFilterAfter(new CustomCsrfFilter(), BasicAuthenticationFilter.class);
         http.authorizeHttpRequests(
                 requests -> requests
                         .requestMatchers(signUpRequest, customLoginRequest, forgotPasswordRequest, resetPasswordRequest).permitAll()
