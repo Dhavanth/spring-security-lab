@@ -22,6 +22,8 @@ public class CustomCsrfFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         CsrfToken csrfTokenFetchedManually = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
+        // How does the request is setting the CSRF token attribute?
+        // It is set by the CsrfFilter which is part of the Spring Security filter chain.
         csrfTokenFetchedManually.getToken();
         filterChain.doFilter(request, response);
     }
