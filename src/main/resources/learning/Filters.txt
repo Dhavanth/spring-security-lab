@@ -1,0 +1,24 @@
+1. BasicAuthenticationFilter:
+- Authenticates requests using HTTP Basic Auth
+- Requires the client to send credentials (username and password) in the request header
+- Order:
+
+2. UsernamePasswordAuthenticationFilter:
+- Authenticates requests using username and password (Form based login)
+- Requires the client to send credentials in the request body or as form data
+- Order:
+
+3. CsrfFilter:
+- Protects against Cross-Site Request Forgery (CSRF) attacks
+- Validates the CSRF token sent by the client in the request header or body and sets it in the request attribute
+- Order:
+
+4. SecurityContextPersistenceFilter:
+- Manages the security context for each request
+- Loads the security context from the session or creates a new one if it doesn't exist
+- Saves the security context back to the session at the end of the request
+- Order:
+
+5. ExceptionTranslationFilter:
+- Handles exceptions that occur during the security process
+- Translates exceptions into appropriate HTTP responses and redirects to error pages if necessary
