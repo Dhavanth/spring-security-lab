@@ -1,3 +1,31 @@
+=== Spring Security Filter Chains Flow===
+Filter chain:
+ - org.springframework.security.web.session.DisableEncodeUrlFilter
+ - org.springframework.security.web.session.ForceEagerSessionCreationFilter
+ - org.springframework.security.web.session.ForceEagerSessionCreationFilter
+ - org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter
+ - org.springframework.security.web.context.SecurityContextPersistenceFilter
+ - org.springframework.security.web.header.HeaderWriterFilter
+ - org.springframework.web.filter.CorsFilter
+ - org.springframework.security.web.csrf.CsrfFilter
+ - org.springframework.security.web.authentication.logout.LogoutFilter
+ - org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+ - org.springframework.security.web.authentication.ui.DefaultResourcesFilter
+ - org.springframework.security.web.authentication.ui.DefaultLoginPageGeneratingFilter
+ - org.springframework.security.web.authentication.ui.DefaultLogoutPageGeneratingFilter
+ - org.springframework.security.web.authentication.www.BasicAuthenticationFilter
+ - com.learning.springsecuritylab.filter.CustomCsrfFilter
+ - org.springframework.security.web.savedrequest.RequestCacheAwareFilter
+ - org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter
+ - org.springframework.security.web.authentication.AnonymousAuthenticationFilter
+ - org.springframework.security.web.session.SessionManagementFilter
+ - org.springframework.security.web.access.ExceptionTranslationFilter
+ - org.springframework.security.web.access.intercept.AuthorizationFilter
+=== End ===
+
+
+
+
 1. BasicAuthenticationFilter:
 - Authenticates requests using HTTP Basic Auth
 - Requires the client to send credentials (username and password) in the request header
