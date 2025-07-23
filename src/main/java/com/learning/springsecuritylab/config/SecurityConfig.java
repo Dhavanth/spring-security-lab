@@ -39,6 +39,8 @@ public class SecurityConfig {
     private String customLoginRequest = Constants.USER_CONTROLLER + Constants.CUSTOM_LOGIN;
     private String forgotPasswordRequest = Constants.USER_CONTROLLER + Constants.FORGOT_PASSWORD;
     private String resetPasswordRequest = Constants.USER_CONTROLLER + Constants.RESET_PASSWORD;
+    private String changePasswordRequest = Constants.USER_CONTROLLER + Constants.CHANGE_PASSWORD;
+    private String userProfileRequest = Constants.USER_CONTROLLER + Constants.USER_PROFILE;
 
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http,
@@ -77,6 +79,8 @@ public class SecurityConfig {
         http.authorizeHttpRequests(
                 requests -> requests
                         .requestMatchers(signUpRequest, customLoginRequest, forgotPasswordRequest, resetPasswordRequest).permitAll()
+                        .requestMatchers(changePasswordRequest).hasAnyAuthority(Constants.WRITE_AUTHORITY, Constants.READ_AUTHORITY)
+                        .requestMatchers(userProfileRequest).hasAnyAuthority(Constants.WRITE_AUTHORITY, Constants.READ_AUTHORITY)
                         .anyRequest().authenticated());
         http.formLogin(withDefaults());
         http.httpBasic(withDefaults()); // Pending: custom auth entry point
