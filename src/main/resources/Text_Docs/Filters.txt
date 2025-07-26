@@ -23,30 +23,82 @@ Filter chain:
  - org.springframework.security.web.access.intercept.AuthorizationFilter
 === End ===
 
+1. DisableEncodeUrlFilter:
+- Disables URL rewriting for session IDs. It means that the session ID will not be appended to URLs.
+- This filter is used to prevent session fixation attacks by ensuring that the session ID is not exposed in URLs.
 
+2. ForceEagerSessionCreationFilter:
+- Forces the creation of a session even if it is not needed.
+- Ensure a session is readily available for filters as some filters require a session regardless of user interaction.
 
-
-1. BasicAuthenticationFilter:
-- Authenticates requests using HTTP Basic Auth
-- Requires the client to send credentials (username and password) in the request header
-- Order:
-
-2. UsernamePasswordAuthenticationFilter:
-- Authenticates requests using username and password (Form based login)
-- Requires the client to send credentials in the request body or as form data
-- Order:
-
-3. CsrfFilter:
-- Protects against Cross-Site Request Forgery (CSRF) attacks
-- Validates the CSRF token sent by the client in the request header or body and sets it in the request attribute
-- Order:
+3. WebAsyncManagerIntegrationFilter:
+- Integrates Spring Security's Security Context with Spring MVC's asynchronous request processing. (Eg. @Async, Callable, DeferredResult)
+- Ensures authenticated user's security context is available during asynchronous processing.
 
 4. SecurityContextPersistenceFilter:
-- Manages the security context for each request
-- Loads the security context from the session or creates a new one if it doesn't exist
-- Saves the security context back to the session at the end of the request
-- Order:
+- Loads the security context from the session at the beginning of the request and saves it back to the session at the end.
+- Ensures that the security context is available for the duration of the request.
 
-5. ExceptionTranslationFilter:
-- Handles exceptions that occur during the security process
-- Translates exceptions into appropriate HTTP responses and redirects to error pages if necessary
+5. HeaderWriterFilter:
+- Writes security-related HTTP headers to the response, such as Content Security Policy (CSP), X-Content-Type-Options, X-Frame-Options, etc.
+- Helps to mitigate various security vulnerabilities by setting appropriate headers.
+
+6. CorsFilter:
+- Handles Cross-Origin Resource Sharing (CORS) requests.
+- Allows or restricts requests from different origins based on CORS configuration.
+
+7. CsrfFilter:
+- Validates the CSRF token sent by the client in the request header or body for POST, PUT, DELETE.
+- Protects against Cross-Site Request Forgery (CSRF) attacks by ensuring that the request is coming from a trusted source.
+- 403 Forbidden response if CSRF token is invalid or missing.
+
+8. LogoutFilter:
+- Handles logout requests by invalidating the session and clearing the security context.
+- Redirects the user to a specified URL after logout.
+
+9. UsernamePasswordAuthenticationFilter: (Authentication Method: Form-based login)
+- Extracts the username and password from the login form and attempts to authenticate the user.
+- If authentication is successful, it sets the security context with the authenticated user. (Add Authentication Object in SecurityContext)
+- for browser users
+
+10. DefaultResourcesFilter:
+- Serves static resources such as JavaScript, CSS, and images.
+
+11. DefaultLoginPageGeneratingFilter:
+- Generates the default login page for form-based authentication.
+
+12. DefaultLogoutPageGeneratingFilter:
+- Generates the default logout page for form-based authentication.
+
+13. BasicAuthenticationFilter: (Authentication Method: HTTP Basic Auth)
+- Extracts the username and password from the request header for HTTP Basic Authentication.
+- If authentication is successful, it sets the security context with the authenticated user.
+- for API access (401 Unauthorized response)
+
+14. CustomCsrfFilter:
+- Custom filter that extends the CsrfFilter to provide additional CSRF protection or custom behavior.
+
+15. RequestCacheAwareFilter:
+- Manages the request cache, which stores requests that require authentication.
+- Redirects the user to the original request after successful authentication.
+
+16. SecurityContextHolderAwareRequestFilter:
+- Provides access to the security context in the request, allowing access to the authenticated user's details.
+
+17. AnonymousAuthenticationFilter:
+- Provides an anonymous authentication token for unauthenticated users.
+- Allows access to resources for users who are not authenticated.
+
+18. SessionManagementFilter:
+- Manages session-related security features, such as session fixation protection and concurrent session control.
+- Ensures that the session is secure and adheres to the configured session management policies.
+
+19. ExceptionTranslationFilter:
+- Handles exceptions that occur during the security process.
+- Catches exceptions thrown by other filters and translates them into appropriate HTTP responses.
+- Catches auth/access errors redirects to login page or error page as needed.
+
+20. AuthorizationFilter:
+- Checks if the authenticated user has the necessary permissions to access the requested resource.
+- If the user is authorized, it allows the request to proceed; otherwise, it denies access and returns an appropriate HTTP response.
+- 403 or error page
