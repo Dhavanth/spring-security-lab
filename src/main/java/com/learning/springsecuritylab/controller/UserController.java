@@ -47,19 +47,14 @@ public class UserController {
         return "User registered successfully with ID: " + savedUser.getId();
     }
 
-    @PostMapping(value = Constants.CUSTOM_LOGIN)
-    public String login(@RequestBody LoginRequestDto loginRequestDto) {
-        String userName = loginRequestDto.getUserName();
-        String password = loginRequestDto.getPassword();
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        userName,
-                        password
-                )
-        );
+    @GetMapping(value = Constants.CUSTOM_LOGIN)
+    public String login(Authentication authentication) {
+        Optional<UserEntity> optionalUserEntity = userRepository.findByUserName(authentication.getName());
+        if (optionalUserEntity.isEmpty()) {
+            return "User not found with username: " + authentication.getName();
+        }
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        System.out.println(authentication.toString());
-        return "User logged in successfully with username: " + userName;
+        return "User logged in successfully with username: " + optionalUserEntity.get().getUserName();
     }
 
     @PostMapping(value = Constants.CHANGE_PASSWORD)

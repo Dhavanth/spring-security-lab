@@ -1,0 +1,50 @@
+1. Add the JWT dependencies:
+implementation("io.jsonwebtoken:jjwt-api:0.12.6")
+runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
+runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
+
+2. Change the session creation policy to STATELESS as JWT is stateless and does not require server-side session management.
+   - This will ensure that the application does not create a session for each request, as JWTs are self-contained tokens that carry the necessary information.
+
+3. Remove Security context explicit save as it is unnecessary for stateless applications.
+   - The security context will not be saved in the session, as JWTs are used for authentication and authorization.
+
+4. CORS Policy updates:
+   - To expose JWT Tokens in the response headers to the client apps in different origins
+
+5. JWT Token Generation:
+   - Create filter that generates JWT tokens upon successful login.
+   - Should generate only for login successful authentication requests but not for every request. -> shouldNotFilter() method
+
+6. JWT Token Validation:
+   - Create filter that validates JWT tokens for protected resources.
+   - Should validate the token for every request other than login request -> shouldFilter() method
+
+7. Add the JWT token generation and validation filters to the filter chain in the Spring Security configuration.
+   - Ensure that the JWT token generation filter runs after the BasicAuthenticationFilter. -> because only authenticated users should receive a JWT token.
+   - Ensure that the JWT token validation filter runs before the BasicAuthenticationFilter. -> because it needs to validate the token before any authentication is done.
+
+8. Build the logic to generate JWT token inside the JWT token generation filter.
+   8.1 Use the JJWT library to create a JWT token with the necessary claims (e.g., username, roles, expiration time).
+   8.2 Sign the token with a secret key.
+   8.3 Steps:
+    - Extract the authentication object from the SecurityContext.
+    - Create a secret key for signing the JWT token.
+    - Set issuer -> To identify the application that generated the token (Client can be aware of the issuer).
+    - Set subject -> Name of the token i.e. JWT Token.
+    - Set claims -> Add the username and roles to the token.
+    - Set issued at -> Current time.
+    - Set expiration time -> Token should expire after a certain period
+    - sign the token with the secret key.
+   8.4 Set the token in the response header with a custom header name (JWT-Authorization).
+
+9. Build the logic to validate JWT token inside the JWT token validation filter.
+    9.1 Use the JJWT library to parse and validate the JWT token.
+    9.2 Steps:
+     - Extract the JWT token from the request header.
+     - Validate the token signature using the secret key.
+     - Check if the token is expired.
+     - If valid, create the authentication object and set it in the SecurityContext.
+     - If invalid, throw an exception or return an error response.
+
+
