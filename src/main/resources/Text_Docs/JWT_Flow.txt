@@ -47,4 +47,12 @@ runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
      - If valid, create the authentication object and set it in the SecurityContext.
      - If invalid, throw an exception or return an error response.
 
+10. Refresh Token Logic:
+Purpose: To allow users to obtain a new JWT token without re-authenticating, extending the session without requiring the user to log in again.
+    - When a user logs in, they receive a JWT token as Authorization header and a refresh token as a cookie which is HttpOnly and Secure.
+    - It is stored in the browser's cookies and is used to obtain a new JWT token when the current one expires.
+    - It is validated and, if valid, a new JWT token & refresh token are generated and returned in the response header and cookie resp.
+    - When JWT and refresh token are generated in previous step, the old refresh token is invalidated/deleted to prevent reuse.
+    - It will be deleted when the user logs out or when the refresh token expires.
+
 
