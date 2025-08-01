@@ -19,4 +19,8 @@ public interface Constants {
     String JWT_SECRET_KEY = "JWT_SECRET_KEY";
     String JWT_SECRET_VALUE_DEFAULT = "rcgEispYsrnIutgNwuvQxYbqZcXkJmFgkjgnkjvdkfvndvndkvnldkfvndflnvldfln";
     String JWT_HEADER = "Authorization";
+
+    // Refresh Token
+    String REFRESH_TOKEN_COOKIE_NAME = "REFRESH_TOKEN";
+    String REFRESH_TOKEN = "/auth/refresh-token";
 }

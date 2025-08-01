@@ -4,6 +4,7 @@ import com.learning.springsecuritylab.constants.Constants;
 import com.learning.springsecuritylab.filter.CustomCsrfFilter;
 import com.learning.springsecuritylab.filter.JwtTokenGenerationFilter;
 import com.learning.springsecuritylab.filter.JwtTokenValidationFilter;
+import com.learning.springsecuritylab.service.RefreshTokenService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.InitializingBean;
@@ -44,6 +45,13 @@ public class SecurityConfig {
     private String resetPasswordRequest = Constants.USER_CONTROLLER + Constants.RESET_PASSWORD;
     private String changePasswordRequest = Constants.USER_CONTROLLER + Constants.CHANGE_PASSWORD;
     private String userProfileRequest = Constants.USER_CONTROLLER + Constants.USER_PROFILE;
+    private String refreshTokenRequest = Constants.USER_CONTROLLER + Constants.REFRESH_TOKEN;
+
+    @Bean
+    public JwtTokenGenerationFilter jwtTokenGenerationFilter(RefreshTokenService refreshTokenService) {
+        return new JwtTokenGenerationFilter(refreshTokenService);
+    }
+
 
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http,
@@ -54,7 +62,7 @@ public class SecurityConfig {
                 .build();
     }
     @Bean
-    public SecurityFilterChain customSecurityFilterChain(HttpSecurity http)
+    public SecurityFilterChain customSecurityFilterChain(HttpSecurity http, JwtTokenGenerationFilter jwtTokenGenerationFilter)
             throws Exception {
         // CORS Configuration
         http.cors(corsCustomizer -> corsCustomizer.configurationSource(new CorsConfigurationSource() {
@@ -77,17 +85,16 @@ public class SecurityConfig {
         http.sessionManagement(
                 sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.csrf(csrfConfig -> csrfConfig.csrfTokenRequestHandler(csrfTokenRequestAttributeHandler)
-                        .ignoringRequestMatchers(signUpRequest)
-                        .ignoringRequestMatchers(customLoginRequest)
+                        .ignoringRequestMatchers(signUpRequest, customLoginRequest, refreshTokenRequest)
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
                 .addFilterAfter(new CustomCsrfFilter(), BasicAuthenticationFilter.class);
         http.authorizeHttpRequests(
                 requests -> requests
-                        .requestMatchers(signUpRequest, customLoginRequest, forgotPasswordRequest, resetPasswordRequest).permitAll()
+                        .requestMatchers(signUpRequest, customLoginRequest, forgotPasswordRequest, resetPasswordRequest, refreshTokenRequest).permitAll()
                         .requestMatchers(changePasswordRequest).hasAnyAuthority(Constants.WRITE_AUTHORITY, Constants.READ_AUTHORITY)
                         .requestMatchers(userProfileRequest).hasAnyAuthority(Constants.WRITE_AUTHORITY, Constants.READ_AUTHORITY)
                         .anyRequest().authenticated());
-        http.addFilterAfter(new JwtTokenGenerationFilter(), BasicAuthenticationFilter.class);
+        http.addFilterAfter(jwtTokenGenerationFilter, BasicAuthenticationFilter.class);
         http.addFilterBefore(new JwtTokenValidationFilter(), BasicAuthenticationFilter.class);
         http.formLogin(withDefaults());
         http.httpBasic(withDefaults()); // Pending: custom auth entry point

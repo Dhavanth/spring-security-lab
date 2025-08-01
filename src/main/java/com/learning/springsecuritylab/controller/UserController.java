@@ -1,16 +1,18 @@
 package com.learning.springsecuritylab.controller;
 
 import com.learning.springsecuritylab.constants.Constants;
-import com.learning.springsecuritylab.dto.ChangePasswordDto;
-import com.learning.springsecuritylab.dto.LoginRequestDto;
-import com.learning.springsecuritylab.dto.ResetPasswordDto;
-import com.learning.springsecuritylab.dto.SignUpRequestDto;
+import com.learning.springsecuritylab.dto.*;
 import com.learning.springsecuritylab.entity.UserEntity;
 import com.learning.springsecuritylab.repository.UserRepository;
 import com.learning.springsecuritylab.service.PasswordResetTokenService;
+import com.learning.springsecuritylab.service.RefreshTokenService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,7 +27,7 @@ public class UserController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final PasswordResetTokenService passwordResetTokenService;
-    private final AuthenticationManager authenticationManager;
+    private final RefreshTokenService refreshTokenService;
 
     @PostMapping(value = Constants.SIGN_UP)
     public String signUp(@RequestBody  SignUpRequestDto signUpRequestDto) {
@@ -98,6 +100,23 @@ public class UserController {
                 "Username: " + userName + "\n" +
                 "Role: " + role + "\n" +
                 "Email ID: " + emailId;
+    }
+
+    @PostMapping(value = Constants.REFRESH_TOKEN)
+    public ResponseEntity<?> generateNewRefreshTokenAndAccessToken
+            (HttpServletRequest request, HttpServletResponse response) {
+        RefreshTokenResponseDto refreshTokenResponseDto =
+                refreshTokenService.generateNewRefreshTokenAndAccessToken(request, response);
+
+        if (refreshTokenResponseDto.isRefreshTokenNull()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh token is null. Please login again.");
+        }
+
+        if (refreshTokenResponseDto.isRefreshTokenExpired()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh token is expired. Please login again.");
+        }
+
+        return ResponseEntity.ok(refreshTokenResponseDto);
     }
 }
 
