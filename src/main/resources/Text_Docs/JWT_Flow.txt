@@ -50,9 +50,51 @@ runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
 10. Refresh Token Logic:
 Purpose: To allow users to obtain a new JWT token without re-authenticating, extending the session without requiring the user to log in again.
     - When a user logs in, they receive a JWT token as Authorization header and a refresh token as a cookie which is HttpOnly and Secure.
+    - (Setting HttpOnly true means that the cookie cannot be accessed nor modified by JavaScript, enhancing security against XSS attacks.)
     - It is stored in the browser's cookies and is used to obtain a new JWT token when the current one expires.
     - It is validated and, if valid, a new JWT token & refresh token are generated and returned in the response header and cookie resp.
     - When JWT and refresh token are generated in previous step, the old refresh token is invalidated/deleted to prevent reuse.
-    - It will be deleted when the user logs out or when the refresh token expires.
+    - It will be deleted when the user logs out or when the refresh token expiry check is true.
+
+11. XSS vs CSRF:
+    - XSS (Cross-Site Scripting) is an attack where an attacker injects malicious scripts into web pages viewed by other users, potentially stealing sensitive information like cookies.
+    - CSRF (Cross-Site Request Forgery) is an attack where an attacker tricks a user into performing actions on a web application without their consent, using the user's authenticated session.
+    - XSS exploits the trust a user has for a site where as XSRF exploits the trust a site has for a user.
+    - XSS - forgery of website content, CSRF - forgery of user actions.
+
+12. Potential Security Risks with JWT and their Solutions:
+    12.1 Access Token Theft:
+    - When generating the jwt token, add a jti (JWT ID) claim to the token.
+    - With this id, map ip and user agent of the client that generated the token and store it in the database/cache.
+    - When validating the token, check if the jti matches the stored values in the database/cache.
+    - If it does not match, invalidate the token and return an error response.
+
+    12.2 Refresh Token Theft:
+    - Store the refresh token in a secure HttpOnly cookie to prevent access by JavaScript.
+
+    12.3 Replay Refresh Token Attacks:
+    - Implement Rotating refresh tokens where a new refresh token is issued each time the user requests a new access token.
+    - Invalidate the old refresh token immediately after issuing a new one to prevent reuse.
+
+    12.4 CSRF on refresh token endpoint:
+    - Implement CSRF protection on the refresh token endpoint by requiring a valid CSRF token in the request header.
+    - This ensures that only legitimate requests from the same origin can refresh the JWT token.
+    - confusion: csrf token: httponly false; refresh token: httponly true
+
+    12.5 Token Expiration:
+    - Set a reasonable expiration time for both access and refresh tokens
+    - Show a user-friendly message when the token expires and prompt the user to log in again.
+
+    12.6 User Account Locked or Disabled:
+    - Implement checks in the JWT validation filter to ensure that the user account is not locked or disabled before allowing access to protected resources.
+    - If the account is locked or disabled, return an appropriate error response.
+
+    12.7 Concurrent usage of same refresh token:
+    - Implement refresh token usage tracking (IP/timestamp/user agent) to prevent concurrent usage of the same refresh token.
+    - Block old tokens on new token generation to prevent reuse.
+
+    12.8 Token Revocation:
+    - Implement a token revocation mechanism to allow users to log out and invalidate their tokens.
+    - This can be done by maintaining a blacklist of revoked tokens or by using a database/cache to track active tokens.
 
 
